@@ -1875,12 +1875,12 @@ void crete_pre_cpu_tb_exec(void *qemuCpuState, TranslationBlock *tb)
 {
     // 0. Sanity check
     CRETE_BDMD_DBG(
-    assert(!crete_pre_post_flag);
+    //assert(!crete_pre_post_flag);
     crete_pre_post_flag = true;
 
-    assert(crete_post_entered);
+    //assert(crete_post_entered);
     crete_post_entered = false;
-    assert(crete_post_finished);
+    //assert(crete_post_finished);
     crete_post_finished = false;
     assert(!crete_tci_is_current_block_symbolic());
 
