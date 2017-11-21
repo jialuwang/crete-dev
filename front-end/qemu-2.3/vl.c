@@ -120,6 +120,9 @@ int main(int argc, char **argv)
 #include "qom/object_interfaces.h"
 #include "qapi-event.h"
 
+//Jialu
+#include "qklee.h"
+
 #define DEFAULT_RAM_SIZE 128
 
 #define MAX_VIRTIO_CONSOLES 1
@@ -2781,6 +2784,9 @@ int main(int argc, char **argv, char **envp)
     FILE *vmstate_dump_file = NULL;
     Error *main_loop_err = NULL;
 
+    //Jialu
+    qklee_entry(argc, argv, envp);
+
     qemu_init_cpu_loop();
     qemu_mutex_lock_iothread();
 
@@ -4379,6 +4385,7 @@ int main(int argc, char **argv, char **envp)
 #ifdef CONFIG_TPM
     tpm_cleanup();
 #endif
-
+    //Jialu
+    qklee_exit();
     return 0;
 }
