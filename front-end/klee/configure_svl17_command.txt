@@ -1,0 +1,2 @@
+./configure --with-stp=/home/jialuwang/stp/build --with-llvmsrc=/usr/lib/llvm-3.4/build/ --with-llvmobj=/usr/lib/llvm-3.4/build
+
