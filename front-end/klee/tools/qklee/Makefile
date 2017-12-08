@@ -24,7 +24,7 @@ include $(LEVEL)/Makefile.common
 #LIBS += -lstp -lqfm
 LIBS += -lstp
 
-QEMU_SRC := ../../../qemu-2.1.2/
+QEMU_SRC := ../../../qemu-2.3/
 CXX.Flags += -I$(QEMU_SRC) -I$(QEMU_SRC)/hw -I$(QEMU_SRC)/fpu \
                  -I$(QEMU_SRC)/include `pkg-config --cflags glib-2.0` \
                  -I$(QEMU_SRC)/include/qemu/ \

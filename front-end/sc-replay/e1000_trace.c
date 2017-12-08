@@ -687,6 +687,8 @@ xmit_seg(E1000State *s)
     if (tp->vlan_needed) {
         memmove(tp->vlan, tp->data, 4);
         memmove(tp->data, tp->data + 4, 8);
+        fprintf(stderr, "before memcpy\n");
+
         memcpy(tp->data + 8, tp->vlan_header, 4);
         e1000_send_packet(s, tp->vlan, tp->size + 4);
     } else
@@ -763,14 +765,16 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
 	    // Jialu DMA
 
             //pci_dma_read(d, addr, tp->data + tp->size, bytes);
-            uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * bytes);
-            if(concolic){
-                klee_make_symbolic(temp_addr, bytes);
-            } else {
-                klee_update_dma(temp_addr, bytes);
-            }
-            BRANCH();
-            memcpy(tp->data + tp->size, temp_addr, bytes);            //
+            //uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * bytes);
+            //if(concolic){
+            //    klee_make_symbolic(temp_addr, bytes);
+            //} else {
+            //    klee_update_dma(temp_addr, bytes);
+            //}
+            fprintf(stderr, "debug 4\n");
+            klee_update_dma(tp->data + tp->size, bytes);
+
+            //memcpy(tp->data + tp->size, temp_addr, bytes);            //
             sz = tp->size + bytes;
             if (sz >= tp->hdr_len && tp->size < tp->hdr_len) {
                 memmove(tp->header, tp->data, tp->hdr_len);
@@ -789,6 +793,8 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
     } else {
         split_size = MIN(sizeof(tp->data) - tp->size, split_size);
         //pci_dma_read(d, addr, tp->data + tp->size, split_size);
+        fprintf(stderr, "debug 1\n");
+        fprintf(stderr, "tp->data + tp->size: %" PRIu64 " \n", tp->data + tp->size);
     	klee_update_dma(tp->data + tp->size, split_size);
 
         tp->size += split_size;
@@ -848,8 +854,8 @@ start_xmit(E1000State *s)
                sizeof(struct e1000_tx_desc) * s->mac_reg[TDH];
         // Jialu: DMA
         //pci_dma_read(d, base, &desc, sizeof(desc));
+        fprintf(stderr, "debug 2\n");
         klee_update_dma(&desc, sizeof(desc));
-        qklee_dma_false();
         DBGOUT(TX, "index %d: %p : %x %x\n", s->mac_reg[TDH],
                (void *)(intptr_t)desc.buffer_addr, desc.lower.data,
                desc.upper.data);
@@ -1093,6 +1099,8 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
         //Jialu
 
         //pci_dma_read(d, base, &desc, sizeof(desc));
+        fprintf(stderr, "debug 3\n");
+
         klee_update_dma(&desc, sizeof(desc));
 
         desc.special = vlan_special;
