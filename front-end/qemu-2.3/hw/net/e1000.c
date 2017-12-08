@@ -664,6 +664,7 @@ xmit_seg(E1000State *s)
     if (tp->vlan_needed) {
         memmove(tp->vlan, tp->data, 4);
         memmove(tp->data, tp->data + 4, 8);
+        fprintf(stderr, "before memcpy\n");
         memcpy(tp->data + 8, tp->vlan_header, 4);
         e1000_send_packet(s, tp->vlan, tp->size + 4);
     } else
@@ -742,10 +743,12 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
             
             pci_dma_read(d, addr, tp->data + tp->size, bytes);
             if(!isKleeExternal) {
-		FILE * dma_f = fopen("../trace_parser/pci_dma_data", "ab");
+		        FILE * dma_f = fopen("../trace_parser/pci_dma_data", "ab");
                 fwrite(tp->data + tp->size, 1, bytes, dma_f);
                 fclose(dma_f);
-	    }
+                uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * bytes);
+                memcpy(temp_addr, tp->data + tp->size, bytes);
+	        }
             qklee_dma_false();
             //
             sz = tp->size + bytes;
@@ -768,10 +771,12 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
         qklee_dma_true();
         pci_dma_read(d, addr, tp->data + tp->size, split_size);
         if(!isKleeExternal) {
-	    FILE * dma_f = fopen("../trace_parser/pci_dma_data", "ab");
+	        FILE * dma_f = fopen("../trace_parser/pci_dma_data", "ab");
             fwrite(tp->data + tp->size, 1, split_size, dma_f);
             fclose(dma_f);
-	}
+            uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * split_size);
+            memcpy(temp_addr, tp->data + tp->size, split_size);
+	    }
         qklee_dma_false();
         tp->size += split_size;
     }
@@ -836,7 +841,9 @@ start_xmit(E1000State *s)
             FILE * dma_f = fopen("../trace_parser/pci_dma_data", "ab");
             fwrite(&desc, 1, sizeof(desc), dma_f);
             fclose(dma_f);
-	}
+            uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * sizeof(desc));
+            memcpy(temp_addr, &desc, sizeof(desc));
+	    }
         qklee_dma_false();
         DBGOUT(TX, "index %d: %p : %x %x\n", s->mac_reg[TDH],
                (void *)(intptr_t)desc.buffer_addr, desc.lower.data,
@@ -1085,6 +1092,8 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
             FILE* dma_f = fopen("../trace_parser/pci_dma_data", "ab");
             fwrite(&desc, 1, sizeof(desc), dma_f);
             fclose(dma_f);
+            uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * sizeof(desc));
+            memcpy(temp_addr, &desc, sizeof(desc));
         }
         qklee_dma_false();
         desc.special = vlan_special;

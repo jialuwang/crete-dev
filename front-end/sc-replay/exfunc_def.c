@@ -100,9 +100,9 @@ void klee_update_dma(void* addr, unsigned int size) {
 
 	memcpy(addr, dma_arr + dma_ind, size);
 	dma_ind += size;
-	/*for(unsigned int i = 0; i < size; i++) {
-		*((char*)addr + i) = dma_arr[dma_ind++];
-	}*/
+	//for(unsigned int i = 0; i < size; i++) {
+	//	*((char*)addr + i) = dma_arr[dma_ind++];
+	//}
 }
 
 void klee_update_receive_regs(RECEIVE_REGS* regs) {
