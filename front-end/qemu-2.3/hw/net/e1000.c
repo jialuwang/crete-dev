@@ -748,7 +748,7 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
 
             pci_dma_read(d, addr, tp->data + tp->size, bytes);
             if(!isKleeExternal) {
-		        FILE * dma_f = fopen("../trace_parser/pci_dma_data", "ab");
+		        FILE * dma_f = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/pci_dma_data", "ab");
                 fwrite(tp->data + tp->size, 1, bytes, dma_f);
                 fclose(dma_f);
                 uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * bytes);
@@ -776,7 +776,7 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
         qklee_dma_true();
         pci_dma_read(d, addr, tp->data + tp->size, split_size);
         if(!isKleeExternal) {
-	        FILE * dma_f = fopen("../trace_parser/pci_dma_data", "ab");
+	        FILE * dma_f = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/pci_dma_data", "ab");
             fwrite(tp->data + tp->size, 1, split_size, dma_f);
             fclose(dma_f);
             uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * split_size);
@@ -843,7 +843,7 @@ start_xmit(E1000State *s)
         pci_dma_read(d, base, &desc, sizeof(desc));
 
         if(!isKleeExternal) {
-            FILE * dma_f = fopen("../trace_parser/pci_dma_data", "ab");
+            FILE * dma_f = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/pci_dma_data", "ab");
             fwrite(&desc, 1, sizeof(desc), dma_f);
             fclose(dma_f);
             uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * sizeof(desc));
@@ -1094,7 +1094,7 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
         qklee_dma_true();
         pci_dma_read(d, base, &desc, sizeof(desc));
         if(!isKleeExternal){
-            FILE* dma_f = fopen("../trace_parser/pci_dma_data", "ab");
+            FILE* dma_f = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/pci_dma_data", "ab");
             fwrite(&desc, 1, sizeof(desc), dma_f);
             fclose(dma_f);
             uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * sizeof(desc));
