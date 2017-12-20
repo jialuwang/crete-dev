@@ -371,7 +371,6 @@ static void
 e1000_autoneg_timer(void *opaque)
 {
     E1000State *s = opaque;
-    fprintf(stderr, "debug 7\n");
     if (!qemu_get_queue(s->nic)->link_down) {
         e1000_link_up(s);
         s->phy_reg[PHY_LP_ABILITY] |= MII_LPAR_LPACK;
@@ -424,7 +423,6 @@ static void e1000_reset(void *opaque)
     d->rxbuf_min_shift = 1;
     memset(&d->tx, 0, sizeof d->tx);
 
-    fprintf(stderr, "debug 8\n");
     if (qemu_get_queue(d->nic)->link_down) {
         e1000_link_down(d);
     }
@@ -436,7 +434,6 @@ static void e1000_reset(void *opaque)
         d->mac_reg[RA] |= macaddr[i] << (8 * i);
         d->mac_reg[RA + 1] |= (i < 2) ? macaddr[i + 4] << (8 * i) : 0;
     }
-    fprintf(stderr, "debug 9\n");
     qemu_format_nic_info_str(qemu_get_queue(d->nic), macaddr);
 }
 
@@ -455,7 +452,6 @@ set_rx_control(E1000State *s, int index, uint32_t val)
     s->rxbuf_min_shift = ((val / E1000_RCTL_RDMTS_QUAT) & 3) + 1;
     DBGOUT(RX, "RCTL: %d, mac_reg[RCTL] = 0x%x\n", s->mac_reg[RDT],
            s->mac_reg[RCTL]);
-	fprintf(stderr, "debug 10\n");
     qemu_flush_queued_packets(qemu_get_queue(s->nic));
 }
 
@@ -607,7 +603,6 @@ fcs_len(E1000State *s)
 static void
 e1000_send_packet(E1000State *s, const uint8_t *buf, int size)
 {
-	fprintf(stderr, "debug 11\n");
     NetClientState *nc = qemu_get_queue(s->nic);
     if (s->phy_reg[PHY_CTRL] & MII_CR_LOOPBACK) {
         nc->info->receive(nc, buf, size);
@@ -664,7 +659,6 @@ xmit_seg(E1000State *s)
     if (tp->vlan_needed) {
         memmove(tp->vlan, tp->data, 4);
         memmove(tp->data, tp->data + 4, 8);
-        fprintf(stderr, "before memcpy\n");
         memcpy(tp->data + 8, tp->vlan_header, 4);
         e1000_send_packet(s, tp->vlan, tp->size + 4);
     } else
@@ -1236,7 +1230,6 @@ mac_writereg(E1000State *s, int index, uint32_t val)
     if (index == RA + 1) {
         macaddr[0] = cpu_to_le32(s->mac_reg[RA]);
         macaddr[1] = cpu_to_le32(s->mac_reg[RA + 1]);
-	fprintf(stderr, "debug 1\n");
         qemu_format_nic_info_str(qemu_get_queue(s->nic), (uint8_t *)macaddr);
     }
 }
@@ -1246,7 +1239,6 @@ set_rdt(E1000State *s, int index, uint32_t val)
 {
     s->mac_reg[index] = val & 0xffff;
     if (e1000_has_rxbufs(s, 1)) {
-	fprintf(stderr, "debug 2\n");
         qemu_flush_queued_packets(qemu_get_queue(s->nic));
     }
 }
@@ -1423,7 +1415,6 @@ static bool is_version_1(void *opaque, int version_id)
 static void e1000_pre_save(void *opaque)
 {
     E1000State *s = opaque;
-    fprintf(stderr, "debug 3\n");
     NetClientState *nc = qemu_get_queue(s->nic);
 
     /* If the mitigation timer is active, emulate a timeout now. */
@@ -1444,7 +1435,6 @@ static void e1000_pre_save(void *opaque)
 static int e1000_post_load(void *opaque, int version_id)
 {
     E1000State *s = opaque;
-    fprintf(stderr, "debug 4\n");
     NetClientState *nc = qemu_get_queue(s->nic);
 
     if (!(s->compat_flags & E1000_FLAG_MIT)) {
@@ -1643,7 +1633,6 @@ static void e1000_write_config(PCIDevice *pci_dev, uint32_t address,
 
     if (range_covers_byte(address, len, PCI_COMMAND) &&
         (pci_dev->config[PCI_COMMAND] & PCI_COMMAND_MASTER)) {
-	fprintf(stderr, "debug 5\n");
         qemu_flush_queued_packets(qemu_get_queue(s->nic));
     }
 }
@@ -1688,7 +1677,6 @@ static void pci_e1000_realize(PCIDevice *pci_dev, Error **errp)
 
     d->nic = qemu_new_nic(&net_e1000_info, &d->conf,
                           object_get_typename(OBJECT(d)), dev->id, d);
-    fprintf(stderr, "debug 6\n");
     qemu_format_nic_info_str(qemu_get_queue(d->nic), macaddr);
 
     d->autoneg_timer = timer_new_ms(QEMU_CLOCK_VIRTUAL, e1000_autoneg_timer, d);
