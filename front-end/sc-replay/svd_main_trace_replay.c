@@ -69,7 +69,7 @@ bool concolic = false;
 #include "qklee.h"
 #include "externalcall.h"
 
-#include "opcodes.c"
+//#include "opcodes.c"
 #include "e1000_trace.c"
 //#include "fw_replay.c"
 
