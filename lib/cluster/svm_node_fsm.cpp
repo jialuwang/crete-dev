@@ -667,10 +667,10 @@ struct KleeFSM_::clean
     {
         fsm.tests_->clear();
 
-        if(fs::remove_all(fsm.trace_dir_) == 0)
-        {
-            BOOST_THROW_EXCEPTION(Exception{} << err::file{"failed to remove trace directory"});
-        }
+        // if(fs::remove_all(fsm.trace_dir_) == 0)
+        // {
+        //     BOOST_THROW_EXCEPTION(Exception{} << err::file{"failed to remove trace directory"});
+        // }
     }
 };
 
