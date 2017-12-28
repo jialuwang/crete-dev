@@ -33,6 +33,7 @@ class Parser(object):
         self.receives = []
         self.interrupts = []
         self.req_types  = []
+        self.marked_trans = []
 
     def parse_to(self, transaction_id):
         self.transaction_id = transaction_id
@@ -43,6 +44,7 @@ class Parser(object):
         self.load_dmaread()
         self.load_receive()
         self.load_interrupt()
+        self.load_marked_trans()
         
     def load_memory_object(self):
         switch = False
@@ -134,6 +136,8 @@ class Parser(object):
                         continue
                     if function_name == 'recvMessage' or function_name == 'sendMessage':
                         continue
+                    if function_name == 'qklee_check_dump':
+                        continue
                     function_value = int(match.group(2))
                     self.excalls.append([transaction, function_name, function_value])
         return
@@ -182,3 +186,15 @@ class Parser(object):
                     self.interrupts.append([match.group(1), match.group(2), match.group(3), match.group(4), match.group(5), match.group(6), match.group(7), match.group(8), match.group(9), match.group(10), match.group(11), match.group(12), match.group(13)])
         return
 
+    def load_marked_trans(self):
+        switch = False
+        for line in self.lines:
+            if re.match(self.start_point, line):
+                switch = True
+                continue
+            if switch:
+                match = re.match('KLEE-replay::Marked transaction (\d+)', line)
+                if match:
+                    self.marked_trans.append(match.group(1))
+        return
+                    
