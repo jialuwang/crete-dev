@@ -49,5 +49,9 @@ if __name__ == '__main__':
             for elem in interrupt:
                 out.write(elem + ' ')
             out.write('\n')
-    print 'Six files generated: mo_dump.txt, req_dump.txt, excall_dump.txt, dmaread_dump.txt, receive_dump.txt, interrupt_dump.txt.'
+    with open ('marked_trans_dump.txt', 'w') as out:
+        for trans in trace.marked_trans:
+            out.write(trans + '\n')
+
+    print 'Seven files generated: mo_dump.txt, req_dump.txt, excall_dump.txt, dmaread_dump.txt, receive_dump.txt, interrupt_dump.txt, marked_trans_dump.txt.'
     print 'DONE.'
