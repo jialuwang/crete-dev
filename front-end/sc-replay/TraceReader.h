@@ -30,7 +30,7 @@ public:
 	void generateExcallRet();
 	void generateIndices();
 	void generateMOs();
-
+        void generateDeclaration();
 private:
 
 public:

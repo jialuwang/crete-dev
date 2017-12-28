@@ -3,6 +3,7 @@
 #include "tci_analyzer.h"
 #include "crete-debug.h"
 
+
 #include <boost/serialization/split_member.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/unordered_set.hpp>
@@ -13,6 +14,12 @@
 
 extern "C" {
 #include "cpu.h"
+//#include "qklee_helper.h"
+//extern unsigned char e1000_start_dump;
+//extern FILE* vd_trace;
+extern void qklee_start_dump();
+extern void qklee_finish_dump();
+extern void qklee_quit_dump();
 
 extern CPUArchState *g_cpuState_bct;
 void qemu_system_shutdown_request(void);
@@ -283,6 +290,10 @@ void crete_custom_instruction_handler(uint64_t arg) {
 
 	case CRETE_INSTR_SEND_TARGET_PID_VALUE:
 	    crete_custom_instr_sent_target_pid();
+
+            // virtual device callback
+            fprintf(stderr, "in CRETE_INSTR_CAPTURE_BEGIN_VALUE\n");
+            qklee_start_dump();
 	    break;
 
 	case CRETE_INSTR_VOID_TARGET_PID_VALUE:
@@ -308,6 +319,10 @@ void crete_custom_instruction_handler(uint64_t arg) {
 	case CRETE_INSTR_DUMP_VALUE:
 	    crete_tracing_finish();
 	    crete_tracing_reset();
+
+            // virtual device callback
+            fprintf(stderr, "in CRETE_INSTR_DUMP_VALUE\n");
+            qklee_finish_dump();
 	    break;
 
 	case CRETE_INSTR_EXCLUDE_FILTER_VALUE: // Exclude filter
@@ -320,6 +335,9 @@ void crete_custom_instruction_handler(uint64_t arg) {
 
 	case CRETE_INSTR_QUIT_VALUE:
 	    qemu_system_shutdown_request();
+            // virtual device callback
+            fprintf(stderr, "in CRETE_INSTR_QUIT_VALUE\n");
+            qklee_quit_dump();
 	    break;
 // Add new custom instruction handler here
 

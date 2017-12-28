@@ -1,6 +1,9 @@
 #ifndef QKLEE_HEADER_H
 #define QKLEE_HEADER_H
 
+//extern "C" {
+//  #include "qklee_helper.h"
+//}
 
 unsigned int replay_one_trans_1(unsigned int offset, unsigned char* receive1, unsigned char* receive2, unsigned char* send);
 unsigned int replay_one_trans_2(unsigned int offset, unsigned char* receive, unsigned char* send, unsigned int len);
@@ -33,4 +36,5 @@ void qklee_getVal(int s, FILE*fp, void* message, void* buf, int len);
 void qklee_dma_true();
 void qklee_dma_false();
 
+unsigned char qklee_check_dump();
 #endif

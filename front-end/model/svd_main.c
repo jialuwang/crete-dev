@@ -1,7 +1,5 @@
 #define QKLEE
 
-
-
 #include "e1000.c"
 #include <stdio.h>
 
@@ -14,7 +12,6 @@ typedef struct _MMIO_REQUEST {
   int type;
   int ret;
 } MMIO_REQUEST;
-
 
 
 MMIO_REQUEST request;
@@ -30,14 +27,15 @@ int main()
 //	set_request();
 //      preload_e1000_state();
 	E1000State* s = request.opaque;
-    fprintf(stderr, "KLEE-replay::interrupt s->mac_reg[ICR] = %" PRIu32 ", s->mac_reg[RDH] = %" PRIu32 ", s->mit_timer_on = %" PRIu32 ", "
+        if(qklee_check_dump()) {
+            fprintf(vd_trace, "KLEE-replay::interrupt s->mac_reg[ICR] = %" PRIu32 ", s->mac_reg[RDH] = %" PRIu32 ", s->mit_timer_on = %" PRIu32 ", "
 			"s->mit_irq_level = %" PRIu32 ", s->compat_flags = %" PRIu32 ", s->tx.sum_needed = %" PRIu32 ", "
 					"s->tx.vlan_needed = %" PRIu32 ", s->tx.tucso = %" PRIu32 ", s->tx.tucss = %" PRIu32 ", "
 							"s->tx.tucse = %"PRIu32 ", s->tx.ipcso = %" PRIu32 ", s->tx.ipcss = %" PRIu32 ", "
 									"s->tx.ipcse = %" PRIu32 "\n",
 					s->mac_reg[ICR], s->mac_reg[RDH], s->mit_timer_on, s->mit_irq_level, s->compat_flags, s->tx.sum_needed, s->tx.vlan_needed,
 					s->tx.tucso, s->tx.tucss, s->tx.tucse, s->tx.ipcso, s->tx.ipcss, s->tx.ipcse);
-
+        }
 	switch (request.type) {
 	    case 1 : {
 //		E1000State *s = request.opaque;
@@ -63,6 +61,7 @@ int main()
 	}
 
     qklee_ret(ret);
+    //fclose(vd_trace);
     return 0;
 }
 

@@ -370,7 +370,7 @@ static void
 e1000_autoneg_timer(void *opaque)
 {
     E1000State *s = opaque;
-    fprintf(stderr, "debug 7\n");
+    //fprintf(stderr, "debug 1\n");
     if (!qemu_get_queue(s->nic)->link_down) {
         e1000_link_up(s);
         s->phy_reg[PHY_LP_ABILITY] |= MII_LPAR_LPACK;
@@ -423,7 +423,7 @@ static void e1000_reset(void *opaque)
     d->rxbuf_min_shift = 1;
     memset(&d->tx, 0, sizeof d->tx);
 
-    fprintf(stderr, "debug 8\n");
+    //fprintf(stderr, "debug 2\n");
     if (qemu_get_queue(d->nic)->link_down) {
         e1000_link_down(d);
     }
@@ -435,7 +435,7 @@ static void e1000_reset(void *opaque)
         d->mac_reg[RA] |= macaddr[i] << (8 * i);
         d->mac_reg[RA + 1] |= (i < 2) ? macaddr[i + 4] << (8 * i) : 0;
     }
-    fprintf(stderr, "debug 9\n");
+    //fprintf(stderr, "debug 3\n");
     qemu_format_nic_info_str(qemu_get_queue(d->nic), macaddr);
 }
 
@@ -454,7 +454,7 @@ set_rx_control(E1000State *s, int index, uint32_t val)
     s->rxbuf_min_shift = ((val / E1000_RCTL_RDMTS_QUAT) & 3) + 1;
     DBGOUT(RX, "RCTL: %d, mac_reg[RCTL] = 0x%x\n", s->mac_reg[RDT],
            s->mac_reg[RCTL]);
-	fprintf(stderr, "debug 10\n");
+	//fprintf(stderr, "debug 4\n");
     qemu_flush_queued_packets(qemu_get_queue(s->nic));
 }
 
@@ -606,7 +606,7 @@ fcs_len(E1000State *s)
 static void
 e1000_send_packet(E1000State *s, const uint8_t *buf, int size)
 {
-	fprintf(stderr, "debug 11\n");
+	//fprintf(stderr, "debug 5\n");
     NetClientState *nc = qemu_get_queue(s->nic);
     if (s->phy_reg[PHY_CTRL] & MII_CR_LOOPBACK) {
         nc->info->receive(nc, buf, size);
@@ -621,7 +621,7 @@ e1000_send_packet(E1000State *s, const uint8_t *buf, int size)
     	s->mac_reg[TORL] = rec_regs.torl;
     	s->mac_reg[TORH] = rec_regs.torh;
     	s->mac_reg[STATUS] = rec_regs.status;
-	    fprintf(stderr,"KLEE-replay::receive_regs e1000_receive s->mac_reg[RDH] = %" PRIu32 ", s->mac_reg[GPRC] = %" PRIu32 ", s->mac_reg[TPR] = %" PRIu32 ", s->mac_reg[TORL] = %" PRIu32 ", s->mac_reg[TORH]= %" PRIu32 ", s->mac_reg[STATUS] = %" PRIu32 "\n", s->mac_reg[RDH], s->mac_reg[GPRC], s->mac_reg[TPR], s->mac_reg[TORL], s->mac_reg[TORH], s->mac_reg[STATUS]);
+	    //fprintf(stderr,"KLEE-replay::receive_regs e1000_receive s->mac_reg[RDH] = %" PRIu32 ", s->mac_reg[GPRC] = %" PRIu32 ", s->mac_reg[TPR] = %" PRIu32 ", s->mac_reg[TORL] = %" PRIu32 ", s->mac_reg[TORH]= %" PRIu32 ", s->mac_reg[STATUS] = %" PRIu32 "\n", s->mac_reg[RDH], s->mac_reg[GPRC], s->mac_reg[TPR], s->mac_reg[TORL], s->mac_reg[TORH], s->mac_reg[STATUS]);
     }
 }
 
@@ -648,7 +648,7 @@ xmit_seg(E1000State *s)
 	s->tx.ipcso = inter_regs.ipcso;
 	s->tx.ipcss = inter_regs.ipcss;
 	s->tx.ipcse = inter_regs.ipcse;
-    fprintf(stderr, "KLEE-replay::interrupt s->mac_reg[ICR] = %" PRIu32 ", s->mac_reg[RDH] = %" PRIu32 ", s->mit_timer_on = %" PRIu32 ", s->mit_irq_level = %" PRIu32 ", s->compat_flags = %" PRIu32 ", s->tx.sum_needed = %" PRIu32 ", s->tx.vlan_needed = %" PRIu32 ", s->tx.tucso = %" PRIu32 ", s->tx.tucss = %" PRIu32 ", s->tx.tucse = %"PRIu32 ", s->tx.ipcso = %" PRIu32 ", s->tx.ipcss = %" PRIu32 ", s->tx.ipcse = %" PRIu32 "\n", s->mac_reg[ICR], s->mac_reg[RDH], s->mit_timer_on, s->mit_irq_level, s->compat_flags, s->tx.sum_needed, s->tx.vlan_needed, s->tx.tucso, s->tx.tucss, s->tx.tucse, s->tx.ipcso, s->tx.ipcss, s->tx.ipcse);
+    //fprintf(stderr, "KLEE-replay::interrupt s->mac_reg[ICR] = %" PRIu32 ", s->mac_reg[RDH] = %" PRIu32 ", s->mit_timer_on = %" PRIu32 ", s->mit_irq_level = %" PRIu32 ", s->compat_flags = %" PRIu32 ", s->tx.sum_needed = %" PRIu32 ", s->tx.vlan_needed = %" PRIu32 ", s->tx.tucso = %" PRIu32 ", s->tx.tucss = %" PRIu32 ", s->tx.tucse = %"PRIu32 ", s->tx.ipcso = %" PRIu32 ", s->tx.ipcss = %" PRIu32 ", s->tx.ipcse = %" PRIu32 "\n", s->mac_reg[ICR], s->mac_reg[RDH], s->mit_timer_on, s->mit_irq_level, s->compat_flags, s->tx.sum_needed, s->tx.vlan_needed, s->tx.tucso, s->tx.tucss, s->tx.tucse, s->tx.ipcso, s->tx.ipcss, s->tx.ipcse);
     if (tp->tse && tp->cptse) {
         css = tp->ipcss;
         DBGOUT(TXSUM, "frames %d size %d ipcss %d\n",
@@ -687,7 +687,7 @@ xmit_seg(E1000State *s)
     if (tp->vlan_needed) {
         memmove(tp->vlan, tp->data, 4);
         memmove(tp->data, tp->data + 4, 8);
-        fprintf(stderr, "before memcpy\n");
+        //fprintf(stderr, "before memcpy\n");
 
         memcpy(tp->data + 8, tp->vlan_header, 4);
         e1000_send_packet(s, tp->vlan, tp->size + 4);
@@ -771,7 +771,7 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
             //} else {
             //    klee_update_dma(temp_addr, bytes);
             //}
-            fprintf(stderr, "debug 4\n");
+            //fprintf(stderr, "debug 6\n");
             klee_update_dma(tp->data + tp->size, bytes);
 
             //memcpy(tp->data + tp->size, temp_addr, bytes);            //
@@ -793,8 +793,8 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
     } else {
         split_size = MIN(sizeof(tp->data) - tp->size, split_size);
         //pci_dma_read(d, addr, tp->data + tp->size, split_size);
-        fprintf(stderr, "debug 1\n");
-        fprintf(stderr, "tp->data + tp->size: %" PRIu64 " \n", tp->data + tp->size);
+        //fprintf(stderr, "debug 7 \n");
+        //fprintf(stderr, "tp->data + tp->size: %" PRIu64 " \n", tp->data + tp->size);
     	klee_update_dma(tp->data + tp->size, split_size);
 
         tp->size += split_size;
@@ -854,7 +854,7 @@ start_xmit(E1000State *s)
                sizeof(struct e1000_tx_desc) * s->mac_reg[TDH];
         // Jialu: DMA
         //pci_dma_read(d, base, &desc, sizeof(desc));
-        fprintf(stderr, "debug 2\n");
+        //fprintf(stderr, "debug 8\n");
         klee_update_dma(&desc, sizeof(desc));
         DBGOUT(TX, "index %d: %p : %x %x\n", s->mac_reg[TDH],
                (void *)(intptr_t)desc.buffer_addr, desc.lower.data,
@@ -984,10 +984,10 @@ static int e1000_bc_can_receive(void *opaque);
 static int e1000_can_receive(NetClientState *nc) {
     void *opaque = nc;
     if(isKleeExternal) {
-        fprintf(stderr,"KLEE-replay::Embed e1000_can_receive\n");
+        //fprintf(stderr,"KLEE-replay::Embed e1000_can_receive\n");
         return e1000_bc_can_receive(opaque);
     } else {
-        fprintf(stderr, "QEMU interface calling: e1000_can_receive: %p\n", nc);
+        //fprintf(stderr, "QEMU interface calling: e1000_can_receive: %p\n", nc);
         return qklee_can_receive(opaque);
     }
 
@@ -1099,7 +1099,7 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
         //Jialu
 
         //pci_dma_read(d, base, &desc, sizeof(desc));
-        fprintf(stderr, "debug 3\n");
+        //fprintf(stderr, "debug 9\n");
 
         klee_update_dma(&desc, sizeof(desc));
 
@@ -1176,13 +1176,13 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
 static ssize_t e1000_bc_receive(void *nc, const uint8_t *buf, size_t size);
 static ssize_t e1000_receive(NetClientState *nc, const uint8_t *buf, size_t size) {
     if(isKleeExternal) {
-        fprintf(stderr,"KLEE-replay::REQ::embedded_receive\n");
+        //fprintf(stderr,"KLEE-replay::REQ::embedded_receive\n");
         E1000State *s = qemu_get_nic_opaque(nc);
         ssize_t ret;
         //ret = e1000_bc_receive(nc, buf, size);
         return ret;
     } else {
-        fprintf(stderr,"QEMU interface calling: e1000_receive: %p     \n", nc);
+        //fprintf(stderr,"QEMU interface calling: e1000_receive: %p     \n", nc);
         return qklee_receive(nc, buf, size);
     }
 }
@@ -1244,7 +1244,7 @@ mac_writereg(E1000State *s, int index, uint32_t val)
     if (index == RA + 1) {
         macaddr[0] = cpu_to_le32(s->mac_reg[RA]);
         macaddr[1] = cpu_to_le32(s->mac_reg[RA + 1]);
-	fprintf(stderr, "debug 1\n");
+	//fprintf(stderr, "debug 10\n");
         qemu_format_nic_info_str(qemu_get_queue(s->nic), (uint8_t *)macaddr);
     }
 }
@@ -1254,7 +1254,7 @@ set_rdt(E1000State *s, int index, uint32_t val)
 {
     s->mac_reg[index] = val & 0xffff;
     if (e1000_has_rxbufs(s, 1)) {
-	fprintf(stderr, "debug 2\n");
+	//fprintf(stderr, "debug 11 \n");
         qemu_flush_queued_packets(qemu_get_queue(s->nic));
     }
 }
@@ -1369,7 +1369,7 @@ e1000_mmio_read(void *opaque, hwaddr addr, unsigned size)
     static bool print_once;
     if (!print_once) {
         print_once = true;
-        fprintf(stderr, "=====KLEE-replay=====KLEE-replay=====KLEE-replay=====KLEE-replay=====KLEE-replay=====\n");
+        //fprintf(stderr, "=====KLEE-replay=====KLEE-replay=====KLEE-replay=====KLEE-replay=====KLEE-replay=====\n");
         //fprintf(stderr, "KLEE-replay::E1000State* s@%p, size %lu\n", s, sizeof(E1000State));
         //fprintf(stderr, "KLEE-replay::s->nic %p, s->mac_reg %p, s->phy_reg %p, s->eeprom_data %p, s->tx %p, s->eecd_state %p, s->autoneg_timer      %p, s->mit_timer %p\n", s->nic, s->mac_reg, s->phy_reg, s->eeprom_data, &(s->tx), &(s->eecd_state), s->autoneg_timer, s->mit_timer);
     }
@@ -1431,7 +1431,7 @@ static bool is_version_1(void *opaque, int version_id)
 static void e1000_pre_save(void *opaque)
 {
     E1000State *s = opaque;
-    fprintf(stderr, "debug 3\n");
+    //fprintf(stderr, "debug 12\n");
     NetClientState *nc = qemu_get_queue(s->nic);
 
     /* If the mitigation timer is active, emulate a timeout now. */
@@ -1452,7 +1452,7 @@ static void e1000_pre_save(void *opaque)
 static int e1000_post_load(void *opaque, int version_id)
 {
     E1000State *s = opaque;
-    fprintf(stderr, "debug 4\n");
+    //fprintf(stderr, "debug 13\n");
     NetClientState *nc = qemu_get_queue(s->nic);
 
     if (!(s->compat_flags & E1000_FLAG_MIT)) {
@@ -1651,7 +1651,7 @@ static void e1000_write_config(PCIDevice *pci_dev, uint32_t address,
 
     if (range_covers_byte(address, len, PCI_COMMAND) &&
         (pci_dev->config[PCI_COMMAND] & PCI_COMMAND_MASTER)) {
-	fprintf(stderr, "debug 5\n");
+	//fprintf(stderr, "debug 14\n");
         qemu_flush_queued_packets(qemu_get_queue(s->nic));
     }
 }
@@ -1696,7 +1696,7 @@ static void pci_e1000_realize(PCIDevice *pci_dev, Error **errp)
 
     d->nic = qemu_new_nic(&net_e1000_info, &d->conf,
                           object_get_typename(OBJECT(d)), dev->id, d);
-    fprintf(stderr, "debug 6\n");
+    //fprintf(stderr, "debug 15\n");
     qemu_format_nic_info_str(qemu_get_queue(d->nic), macaddr);
 
     d->autoneg_timer = timer_new_ms(QEMU_CLOCK_VIRTUAL, e1000_autoneg_timer, d);

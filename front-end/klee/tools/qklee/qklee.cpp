@@ -74,9 +74,13 @@
 
 //Qin
 // uncomment next 3 lines when qfm folder presents
-//extern "C" {
+extern "C" {
 //#include "qfm_socket.h"
-//}
+}
+extern unsigned char e1000_start_dump;
+extern FILE* vd_trace;
+//extern void qklee_start_dump();
+//extern void qklee_finish_dump();
 
 using namespace llvm;
 using namespace klee;
@@ -317,7 +321,6 @@ KleeHandler::KleeHandler(int argc, char **argv)
 
         SmallString<128> klee_last(directory);
         llvm::sys::path::append(klee_last, "klee-last");
-
         if (((unlink(klee_last.c_str()) < 0) && (errno != ENOENT)) ||
             symlink(m_outputDirectory.c_str(), klee_last.c_str()) < 0) {
 
@@ -1157,6 +1160,11 @@ int qklee_main(int argc, char **argv, char **envp) {
 #if ENABLE_STPLOG == 1
   STPLOG_init("stplog.c");
 #endif
+  // open virtual device trace file
+  if(!vd_trace) {
+      vd_trace = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/vd.log", "w");
+      fprintf(vd_trace, "=====KLEE-replay=====KLEE-replay=====KLEE-replay=====KLEE-replay=====KLEE-replay=====\n");
+  }
 
   atexit(llvm_shutdown);  // Call llvm_shutdown() on exit.
 
@@ -1628,7 +1636,7 @@ int qklee_mmio_write(void *opaque, hwaddr addr, uint64_t val,
   mmio_request.size = size;
   mmio_request.type = 1;
 
-  fprintf(stderr, "KLEE-replay::REQ::mmio_write opaque %p, addr %" PRIu64 ", val %" PRIu64 ", size %u\n", opaque, addr, val, size);
+  fprintf(vd_trace, "KLEE-replay::REQ::mmio_write opaque %p, addr %" PRIu64 ", val %" PRIu64 ", size %u\n", opaque, addr, val, size);
 
   theInterpreter->executorRun();
   
@@ -1640,8 +1648,12 @@ int qklee_mmio_read(void *opaque, hwaddr addr, unsigned size) {
   mmio_request.addr = addr;
   mmio_request.size = size;
   mmio_request.type = 2;
-
-  fprintf(stderr, "KLEE-replay::REQ::mmio_read opaque %p, addr %" PRIu64 ", size %u\n", opaque, addr, size);
+  fprintf(stderr, "before fprintf in qklee_mmio_read\n");
+  if(!vd_trace){
+    vd_trace = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/vd.log", "wa");
+    fprintf(stderr, "in if\n" );
+  }
+  fprintf(vd_trace, "KLEE-replay::REQ::mmio_read opaque %p, addr %" PRIu64 ", size %u\n", opaque, addr, size);
 
   theInterpreter->executorRun();
 
@@ -1656,7 +1668,7 @@ int qklee_receive(void *opaque, const uint8_t *buf, size_t size) {
     mmio_request.size = size;
 
 //    trace = new llvm::raw_fd_ostream("e1000_receive_trace.ll", EC, sys::fs::F_None);
-    fprintf(stderr, "KLEE-replay::REQ::receive opaque %p, buf %p, size %u\n", opaque, buf, size);
+    fprintf(vd_trace, "KLEE-replay::REQ::receive opaque %p, buf %p, size %u\n", opaque, buf, size);
     theInterpreter->executorRun();
 //    dumpTrace = false;
 //    trace.close();
@@ -1667,7 +1679,7 @@ int qklee_receive(void *opaque, const uint8_t *buf, size_t size) {
 int qklee_can_receive(void *opaque) {
     mmio_request.opaque = opaque;
     mmio_request.type = 5;
-    fprintf(stderr, "KLEE-replay::REQ::can_receive opaque %p\n", opaque);
+    fprintf(vd_trace, "KLEE-replay::REQ::can_receive opaque %p\n", opaque);
     theInterpreter->executorRun();
     return mmio_request.ret;
 }
@@ -1676,7 +1688,7 @@ int qklee_set_link_status(void *opaque) {
     mmio_request.opaque = opaque;
     mmio_request.type = 4;
 
-    fprintf(stderr, "KLEE-replay::REQ::set_link_status opaque %p\n", opaque);
+    fprintf(vd_trace, "KLEE-replay::REQ::set_link_status opaque %p\n", opaque);
     theInterpreter->executorRun();
     return 0;
 }
@@ -1765,4 +1777,28 @@ void qklee_getVal(int s, FILE*fp, void* message, void* buf, int len){
 }*/
 void qklee_dma_true(){isDMARead = true;}
 void qklee_dma_false(){isDMARead = false;}
+unsigned char qklee_check_dump() {
+  return e1000_start_dump;
+}
+
+extern "C" {
+  void qklee_start_dump() {
+    fprintf(stderr, "in qklee_start_dump\n");
+    e1000_start_dump = 1;
+  }
+  void qklee_finish_dump() {
+    fprintf(stderr, "in qklee_finish_dump\n");
+    fprintf(vd_trace, "KLEE-replay: Finish one iteration\n");
+  }
+  void qklee_quit_dump() {
+    fprintf(stderr, "in qklee_quit_dump\n");
+    fprintf(vd_trace, "KLEE-replay: Finish all iterations\n");
+    e1000_start_dump = 0;
+  }
+  void qklee_mark_transaction() {
+    fprintf(stderr, "in qklee_mark_transaction\n");
+    fprintf(vd_trace, "KLEE-replay: Driver mark\n");
+  }
+
+}
 }

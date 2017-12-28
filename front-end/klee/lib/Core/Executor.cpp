@@ -88,6 +88,7 @@
 #else
 #include "llvm/IR/CallSite.h"
 #endif
+#include "/home/jialuwang/crete/crete-dev/front-end/qemu-2.3/include/qklee_helper.h"
 
 #include <cassert>
 #include <algorithm>
@@ -140,7 +141,6 @@ bool isKleeExternal = false;
 bool isDMARead = false;
 bool dumpTrace = false;
 //llvm::raw_fd_ostream trace;
-
 
 namespace {
   cl::opt<bool>
@@ -2949,10 +2949,10 @@ void Executor::callExternalFunction(ExecutionState &state,
     ref<Expr> e = ConstantExpr::fromMemory((void*) args, 
                                            getWidthForLLVMType(resultType));
 //Qin: dump external call return value
-    if(!isDMARead){
-    	fprintf(stderr, "KLEE-replay::ExCall %s return %" PRIu64 "\n",
-	    function->getName().str().c_str(),
-	    cast<ConstantExpr>(e)->getZExtValue());
+    if(!isDMARead) {
+    	  fprintf(vd_trace, "KLEE-replay::ExCall %s return %" PRIu64 "\n",
+	  function->getName().str().c_str(),
+	  cast<ConstantExpr>(e)->getZExtValue());
     }
     bindLocal(target, state, e);
   }
@@ -3609,7 +3609,7 @@ MemoryObject * Executor::handleMemoryMissing(ExecutionState &state, uint64_t add
 
 #if defined(MERGE_OVERLAPPED_MO)
 	MemoryObject *mo;
-	fprintf(stderr, "1 addr %p size %d\n", addr, size);
+	  fprintf(vd_trace, "1 addr %p size %d\n", addr, size);
 	if( memory->isOverlappedMO(addr, size) ){
 		fprintf(stderr, "isOverlappedMO\n");
 	    mo = crete_merge_overlapped_mos(state, addr, size, isReadOnly);
@@ -3618,13 +3618,13 @@ MemoryObject * Executor::handleMemoryMissing(ExecutionState &state, uint64_t add
 
 //	    fprintf(stderr, "AllocateFixed Done\n");
 	    ObjectState *os = bindObjectInState(state, mo, false);
-	    fprintf(stderr, "KLEE-replay Add new external object\n");
-	    for(unsigned i = 0; i < size; i++) {
+	    fprintf(vd_trace, "KLEE-replay Add new external object\n");
+	      for(unsigned i = 0; i < size; i++) {
 	        os->write8(i, ((uint8_t*)addr)[i]);
 	        //fprintf(stderr,"KLEE-replay::MO addr 0x%"PRIx64", value 0x%02x\n", addr + i, ((uint8_t*)addr)[i]);
-		    fprintf(stderr,"KLEE-replay::MO addr %"PRIu64", value %d\n", addr + i, ((uint8_t*)addr)[i]);
+		    fprintf(vd_trace,"KLEE-replay::MO addr %"PRIu64", value %d\n", addr + i, ((uint8_t*)addr)[i]);
 
-	    }
+	      }
 	    if(isReadOnly)
 	    {
 	        os->setReadOnly(true);
@@ -3638,11 +3638,11 @@ MemoryObject * Executor::handleMemoryMissing(ExecutionState &state, uint64_t add
 	MemoryObject *mo = memory->allocateFixed((uint64_t) (unsigned long) addr, size, 0);
 //	fprintf(stderr, "AllocateFixed Done\n");
 	ObjectState *os = bindObjectInState(state, mo, false);
-	fprintf(stderr, "KLEE-replay Add new external object\n");
+        fprintf(vd_trace, "KLEE-replay Add new external object\n");
 	for(unsigned i = 0; i < size; i++) {
 	    os->write8(i, ((uint8_t*)addr)[i]);
-	    fprintf(stderr,"KLEE-replay::MO addr %"PRIu64", value %d\n", addr + i, ((uint8_t*)addr)[i]);
-	}
+	    fprintf(vd_trace,"KLEE-replay::MO addr %"PRIu64", value %d\n", addr + i, ((uint8_t*)addr)[i]);
+  	}
 	if(isReadOnly)
 	    os->setReadOnly(true);
 	mo->isExternal = true;
@@ -3877,13 +3877,13 @@ void Executor::executorRun(void) {
   processTree = new PTree(state);
   fprintf(stderr, "new pt\n");
   state->ptreeNode = processTree->root;
-  fprintf(stderr, "KLEE-replay::TRS start executorRun %d---->\n", counter);
+  fprintf(vd_trace, "KLEE-replay::TRS start executorRun %d---->\n", counter);
   run(*state);
 //  klee_warning("done executorRun run(*state)"); 
 
   delete processTree;
   processTree = 0;
-  fprintf(stderr, "KLEE-replay::TRS\t\t------>done executorRun %d\n", counter);
+  fprintf(vd_trace, "KLEE-replay::TRS\t\t------>done executorRun %d\n", counter);
   counter++;
 }
 
