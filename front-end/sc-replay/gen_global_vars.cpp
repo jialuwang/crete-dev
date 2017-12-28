@@ -11,6 +11,7 @@
 int main() {
 	TraceReader tr;
 	tr.readToVectors();
+        tr.generateDeclaration();
 	tr.generateReceive();
 	tr.generateInterrupt();
 	tr.generateRequest();

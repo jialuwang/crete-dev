@@ -37,6 +37,12 @@
 
 #include "e1000_regs.h"
 // Jialu
+//#include "qklee_helper.h"
+//extern unsigned char e1000_start_dump;
+extern FILE* vd_trace;
+extern void qklee_start_dump();
+extern void qklee_finish_dump();
+
 #include "qklee.h"
 #include "externalcall.h"
 #include <inttypes.h>
@@ -609,7 +615,9 @@ e1000_send_packet(E1000State *s, const uint8_t *buf, int size)
     } else {
         qemu_send_packet(nc, buf, size);
 	// Jialu: update regs after receive
-	fprintf(stderr,"KLEE-replay::receive_regs e1000_receive s->mac_reg[RDH] = %" PRIu32 ", s->mac_reg[GPRC] = %" PRIu32 ", s->mac_reg[TPR] = %" PRIu32 ", s->mac_reg[TORL] = %" PRIu32 ", s->mac_reg[TORH]= %" PRIu32 ", s->mac_reg[STATUS] = %" PRIu32 "\n", s->mac_reg[RDH], s->mac_reg[GPRC], s->mac_reg[TPR], s->mac_reg[TORL], s->mac_reg[TORH], s->mac_reg[STATUS]);
+        if(qklee_check_dump()) {
+	fprintf(vd_trace,"KLEE-replay::receive_regs e1000_receive s->mac_reg[RDH] = %" PRIu32 ", s->mac_reg[GPRC] = %" PRIu32 ", s->mac_reg[TPR] = %" PRIu32 ", s->mac_reg[TORL] = %" PRIu32 ", s->mac_reg[TORH]= %" PRIu32 ", s->mac_reg[STATUS] = %" PRIu32 "\n", s->mac_reg[RDH], s->mac_reg[GPRC], s->mac_reg[TPR], s->mac_reg[TORL], s->mac_reg[TORH], s->mac_reg[STATUS]);
+        }
     }
 }
 
@@ -620,7 +628,9 @@ xmit_seg(E1000State *s)
     unsigned int frames = s->tx.tso_frames, css, sofar, n;
     struct e1000_tx *tp = &s->tx;
     //Jialu: update interrupt registers
-    fprintf(stderr, "KLEE-replay::interrupt s->mac_reg[ICR] = %" PRIu32 ", s->mac_reg[RDH] = %" PRIu32 ", s->mit_timer_on = %" PRIu32 ", s->mit_irq_level = %" PRIu32 ", s->compat_flags = %" PRIu32 ", s->tx.sum_needed = %" PRIu32 ", s->tx.vlan_needed = %" PRIu32 ", s->tx.tucso = %" PRIu32 ", s->tx.tucss = %" PRIu32 ", s->tx.tucse = %"PRIu32 ", s->tx.ipcso = %" PRIu32 ", s->tx.ipcss = %" PRIu32 ", s->tx.ipcse = %" PRIu32 "\n", s->mac_reg[ICR], s->mac_reg[RDH], s->mit_timer_on, s->mit_irq_level, s->compat_flags, s->tx.sum_needed, s->tx.vlan_needed, s->tx.tucso, s->tx.tucss, s->tx.tucse, s->tx.ipcso, s->tx.ipcss, s->tx.ipcse);
+    if(qklee_check_dump()) {
+        fprintf(vd_trace, "KLEE-replay::interrupt s->mac_reg[ICR] = %" PRIu32 ", s->mac_reg[RDH] = %" PRIu32 ", s->mit_timer_on = %" PRIu32 ", s->mit_irq_level = %" PRIu32 ", s->compat_flags = %" PRIu32 ", s->tx.sum_needed = %" PRIu32 ", s->tx.vlan_needed = %" PRIu32 ", s->tx.tucso = %" PRIu32 ", s->tx.tucss = %" PRIu32 ", s->tx.tucse = %"PRIu32 ", s->tx.ipcso = %" PRIu32 ", s->tx.ipcss = %" PRIu32 ", s->tx.ipcse = %" PRIu32 "\n", s->mac_reg[ICR], s->mac_reg[RDH], s->mit_timer_on, s->mit_irq_level, s->compat_flags, s->tx.sum_needed, s->tx.vlan_needed, s->tx.tucso, s->tx.tucss, s->tx.tucse, s->tx.ipcso, s->tx.ipcss, s->tx.ipcse);
+    }
     if (tp->tse && tp->cptse) {
         css = tp->ipcss;
         DBGOUT(TXSUM, "frames %d size %d ipcss %d\n",
@@ -736,8 +746,8 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
             qklee_dma_true();
             
             pci_dma_read(d, addr, tp->data + tp->size, bytes);
-            if(!isKleeExternal) {
-		        FILE * dma_f = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/pci_dma_data", "ab");
+            if(qklee_check_dump() && !isKleeExternal){
+            	FILE * dma_f = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/pci_dma_data", "ab");
                 fwrite(tp->data + tp->size, 1, bytes, dma_f);
                 fclose(dma_f);
                 uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * bytes);
@@ -764,8 +774,8 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
         split_size = MIN(sizeof(tp->data) - tp->size, split_size);
         qklee_dma_true();
         pci_dma_read(d, addr, tp->data + tp->size, split_size);
-        if(!isKleeExternal) {
-	        FILE * dma_f = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/pci_dma_data", "ab");
+        if(qklee_check_dump() && !isKleeExternal){
+        	FILE * dma_f = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/pci_dma_data", "ab");
             fwrite(tp->data + tp->size, 1, split_size, dma_f);
             fclose(dma_f);
             uint32_t *temp_addr = (uint32_t*)malloc(sizeof(char) * split_size);
@@ -831,7 +841,7 @@ start_xmit(E1000State *s)
         qklee_dma_true();
         pci_dma_read(d, base, &desc, sizeof(desc));
 
-        if(!isKleeExternal) {
+        if(qklee_check_dump() && !isKleeExternal) {
             FILE * dma_f = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/pci_dma_data", "ab");
             fwrite(&desc, 1, sizeof(desc), dma_f);
             fclose(dma_f);
@@ -966,11 +976,13 @@ static int e1000_bc_can_receive(void *opaque);
 
 static int e1000_can_receive(NetClientState *nc) {
     void *opaque = nc;
-    if(isKleeExternal) {
-        fprintf(stderr,"KLEE-replay::Embed e1000_can_receive\n");
+    if(!qklee_check_dump()) {
+        return e1000_bc_can_receive(opaque);
+    } else if(isKleeExternal) {
+        fprintf(vd_trace, "KLEE-replay::Embed e1000_can_receive\n");
         return e1000_bc_can_receive(opaque);
     } else {
-        fprintf(stderr, "QEMU interface calling: e1000_can_receive: %p\n", nc);
+        fprintf(vd_trace, "QEMU interface calling: e1000_can_receive: %p\n", nc);
         return qklee_can_receive(opaque);
     }
 
@@ -1082,7 +1094,7 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
         //Jialu
         qklee_dma_true();
         pci_dma_read(d, base, &desc, sizeof(desc));
-        if(!isKleeExternal){
+        if(qklee_check_dump() && !isKleeExternal){
             FILE* dma_f = fopen("/home/jialuwang/crete/crete-dev/front-end/trace_parser/pci_dma_data", "ab");
             fwrite(&desc, 1, sizeof(desc), dma_f);
             fclose(dma_f);
@@ -1162,13 +1174,17 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
 // Jialu
 static ssize_t e1000_bc_receive(void *nc, const uint8_t *buf, size_t size);
 static ssize_t e1000_receive(NetClientState *nc, const uint8_t *buf, size_t size) {
-    if(isKleeExternal) {
-        fprintf(stderr,"KLEE-replay::REQ::embedded_receive\n");
+    if(!qklee_check_dump()) {
+        E1000State *s = qemu_get_nic_opaque(nc);
+        ssize_t ret = e1000_bc_receive(nc, buf, size);
+        return ret;
+    } else if(isKleeExternal) {
+        fprintf(vd_trace,"KLEE-replay::REQ::embedded_receive\n");
         E1000State *s = qemu_get_nic_opaque(nc);
         ssize_t ret = e1000_bc_receive(nc, buf, size);
         return ret;
     } else {
-        fprintf(stderr,"QEMU interface calling: e1000_receive: %p     \n", nc);
+        fprintf(vd_trace,"QEMU interface calling: e1000_receive: %p     \n", nc);
         return qklee_receive(nc, buf, size);
     }
 }
@@ -1328,8 +1344,18 @@ static void e1000_bc_mmio_write(void *opaque, hwaddr addr, uint64_t val, unsigne
 static uint64_t e1000_bc_mmio_read(void *opaque, hwaddr addr, unsigned size);
 static void
 e1000_mmio_write(void *opaque, hwaddr addr, uint64_t val, unsigned size){
-    qklee_mmio_write(opaque, addr, val, size);
+/*    qklee_mmio_write(opaque, addr, val, size);
     E1000State *s = opaque;
+*/
+    fprintf(stderr, "enter e1000_mmio_write\n");
+    if(qklee_check_dump()) {
+        fprintf(stderr, "enter e1000_mmio_write if\n");
+        qklee_mmio_write(opaque, addr, val, size);
+        E1000State *s = opaque;
+    } else {
+        fprintf(stderr, "enter e1000_mmio_write else\n");
+        e1000_bc_mmio_write(opaque, addr, val, size);
+    }
 }
 static void
 e1000_bc_mmio_write(void *opaque, hwaddr addr, uint64_t val, unsigned size)
@@ -1349,20 +1375,29 @@ e1000_bc_mmio_write(void *opaque, hwaddr addr, uint64_t val, unsigned size)
 static uint64_t
 e1000_mmio_read(void *opaque, hwaddr addr, unsigned size)
 {
-    E1000State *s = opaque;
-    static bool print_once;
+    fprintf(stderr, "enter e1000_mmio_read\n");
+    if(qklee_check_dump()) {
+        fprintf(stderr, "enter e1000_mmio_read if\n");
+        E1000State *s = opaque;
+        return qklee_mmio_read(opaque, addr, size);
+    } else {
+        fprintf(stderr, "enter e1000_mmio_read else\n");
+        return e1000_bc_mmio_read(opaque, addr, size);
+    }
+    /*static bool print_once;
     if (!print_once) {
         print_once = true;
-        fprintf(stderr, "=====KLEE-replay=====KLEE-replay=====KLEE-replay=====KLEE-replay=====KLEE-replay=====\n");
-        fprintf(stderr, "KLEE-replay::E1000State* s@%p, size %lu\n", s, sizeof(E1000State));
-        fprintf(stderr, "KLEE-replay::s->nic %p, s->mac_reg %p, s->phy_reg %p, s->eeprom_data %p, s->tx %p, s->eecd_state %p, s->autoneg_timer      %p, s->mit_timer %p\n", s->nic, s->mac_reg, s->phy_reg, s->eeprom_data, &(s->tx), &(s->eecd_state), s->autoneg_timer, s->mit_timer);
-    }
-    return qklee_mmio_read(opaque, addr, size);
+        fprintf(vd_trace, "=====KLEE-replay=====KLEE-replay=====KLEE-replay=====KLEE-replay=====KLEE-replay=====\n");
+        fprintf(vd_trace, "KLEE-replay::E1000State* s@%p, size %lu\n", s, sizeof(E1000State));
+        fprintf(vd_trace, "KLEE-replay::s->nic %p, s->mac_reg %p, s->phy_reg %p, s->eeprom_data %p, s->tx %p, s->eecd_state %p, s->autoneg_timer      %p, s->mit_timer %p\n", s->nic, s->mac_reg, s->phy_reg, s->eeprom_data, &(s->tx), &(s->eecd_state), s->autoneg_timer, s->mit_timer);
+    }*/
 }
 
 static uint64_t
 e1000_bc_mmio_read(void *opaque, hwaddr addr, unsigned size)
 {
+
+    fprintf(stderr, "enter e1000_bc_mmio_read\n");
     E1000State *s = opaque;
     unsigned int index = (addr & 0x1ffff) >> 2;
 

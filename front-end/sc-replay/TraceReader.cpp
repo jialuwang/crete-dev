@@ -81,20 +81,38 @@ void TraceReader::readToVectors() {
 		std::cout << "Unable to open global_vars";
 	}
 }
+void TraceReader::generateDeclaration() {
+/*    std::stringstream dec("");
+    dec << "INTERRUPT_REGS* interrupt_arr;" << std::endl;
+    dec << "MMIO_REQUEST* req_arr;" << std::endl;
+    dec << "const char** excall_name_arr;" << std::endl;
+    dec << "long long* excall_val_arr;" << std::endl;
+    dec << "RECEIVE_REGS* receive_arr;" << std::endl;
 
+    std::ofstream global_vars("global_vars.h", std::ios::app);
+    if (global_vars.is_open()) {
+        global_vars << dec.rdbuf();
+	global_vars.close();
+    } else {
+	std::cout << "Unable to open global_vars";
+    }*/
+}
 void TraceReader::generateDMA() {
-
-	// create a stringstream as the statement for creating the array of structs in c file.
 	std::stringstream arr("");
-	arr << "unsigned char dma_arr[" << dma_size << "] = {" << std::endl;
-	for(unsigned int i = 0; i < dma_size; i++) {
+        if(!dma_size) {
+            arr << "unsigned char* dma_arr;" << std::endl;
+        } else {
+	// create a stringstream as the statement for creating the array of structs in c file.
+	    arr << "unsigned char dma_arr[" << dma_size << "] = {" << std::endl;
+	    for(unsigned int i = 0; i < dma_size; i++) {
 		arr << +dma_data[i];
 		if (i == dma_size - 1) {
 			arr << "};" << std::endl;
 		} else {
 			arr << ", ";
 		}
-	}
+	    }
+        }   
 	std::ofstream global_vars("global_vars.h", std::ios::app);
 	if (global_vars.is_open()) {
 		global_vars << arr.rdbuf();
@@ -105,15 +123,16 @@ void TraceReader::generateDMA() {
 }
 
 void TraceReader::generateReceive() {
-
+	std::stringstream arr("");
 	// get size of the vector
 	receive_size = receive_vec.size();
+        if(!receive_size) {
+          arr << "RECEIVE_REGS* receive_arr;" << std::endl;
+        } else {
+	    // create a stringstream as the statement for creating the array of structs in c file.
+	  arr << "RECEIVE_REGS receive_arr[" << receive_size << "] = {" << std::endl;
 
-	// create a stringstream as the statement for creating the array of structs in c file.
-	std::stringstream arr("");
-	arr << "RECEIVE_REGS receive_arr[" << receive_size << "] = {" << std::endl;
-
-	for(unsigned int i = 0; i < receive_size; i++) {
+	  for(unsigned int i = 0; i < receive_size; i++) {
 		std::string regs = receive_vec[i];
 		std::stringstream stream(regs);
 		RECEIVE_REGS tmp;
@@ -136,8 +155,8 @@ void TraceReader::generateReceive() {
 		} else {
 			arr << "}," << std::endl;
 		}
-	}
-
+	  }
+        }  
 	std::ofstream global_vars("global_vars.h", std::ios::app);
 	if (global_vars.is_open()) {
 		global_vars << arr.rdbuf();
@@ -149,15 +168,16 @@ void TraceReader::generateReceive() {
 }
 
 void TraceReader::generateInterrupt() {
-
+	std::stringstream arr("");
 	// get size of the vector
 	interrupt_size = interrupt_vec.size();
+        if(!interrupt_size) {
+            arr << "INTERRUPT_REGS* interrupt_arr;" << std::endl;   
+        } else {
+	  // create a stringstream as the statement for creating the array of structs in c file.
+	  arr << "INTERRUPT_REGS interrupt_arr[" << interrupt_size << "] = {" << std::endl;
 
-	// create a stringstream as the statement for creating the array of structs in c file.
-	std::stringstream arr("");
-	arr << "INTERRUPT_REGS interrupt_arr[" << interrupt_size << "] = {" << std::endl;
-
-	for(unsigned int i = 0; i < interrupt_size; i++) {
+	  for(unsigned int i = 0; i < interrupt_size; i++) {
 		std::string regs = interrupt_vec[i];
 		std::stringstream stream(regs);
 		INTERRUPT_REGS tmp;
@@ -196,8 +216,8 @@ void TraceReader::generateInterrupt() {
 		} else {
 			arr << "}," << std::endl;
 		}
-	}
-
+	  }
+        }
 	std::ofstream global_vars("global_vars.h", std::ios::app);
 	if (global_vars.is_open()) {
 		global_vars << arr.rdbuf();
@@ -209,15 +229,16 @@ void TraceReader::generateInterrupt() {
 }
 
 void TraceReader::generateRequest() {
-
+	std::stringstream arr("");
 	// get size of the vector
 	req_size = req_vec.size();
+        if(!req_size) {
+            arr << "MMIO_REQUEST* req_arr;" << std::endl;   
+        } else {
+	  // create a stringstream as the statement for creating the array of structs in c file.
+	  arr << "MMIO_REQUEST req_arr[" << req_size << "] = {" << std::endl;
 
-	// create a stringstream as the statement for creating the array of structs in c file.
-	std::stringstream arr("");
-	arr << "MMIO_REQUEST req_arr[" << req_size << "] = {" << std::endl;
-
-	for (unsigned int i = 0; i < req_size; i++) {
+	  for (unsigned int i = 0; i < req_size; i++) {
 		MMIO_REQUEST mmio_request;
 		std::string req = req_vec[i];
 		std::stringstream stream(req);
@@ -292,6 +313,7 @@ void TraceReader::generateRequest() {
 		} else {
 			arr << "}," << std::endl;
 		}
+          }
 	}
 
 	std::ofstream global_vars("global_vars.h", std::ios::app);
@@ -305,18 +327,20 @@ void TraceReader::generateRequest() {
 }
 
 void TraceReader::generateExcallRet() {
-	// get size of the vector
-	ret_size = ret_vec.size();
-
 	// create a stringstream as the statement for creating the array of function names in c file.
 	std::stringstream name_arr("");
-	name_arr << "const char* excall_name_arr[" << ret_size << "] = {" << std::endl;
-
 	// create a stringstream as the statement for creating the array of function ret vals in c file.
 	std::stringstream val_arr("");
-	val_arr << "long long excall_val_arr[" << ret_size << "] = {" << std::endl;
+	// get size of the vector
+	ret_size = ret_vec.size();
+        if(!ret_size){
+	  name_arr << "const char** excall_name_arr;" << std::endl;
+	  val_arr << "long long* excall_val_arr;" <<  std::endl;
+        } else {
+	  name_arr << "const char* excall_name_arr[" << ret_size << "] = {" << std::endl;
+	  val_arr << "long long excall_val_arr[" << ret_size << "] = {" << std::endl;
 
-	for(unsigned int i = 0; i < ret_size; i++) {
+	  for(unsigned int i = 0; i < ret_size; i++) {
 		std::string regs = ret_vec[i];
 		std::stringstream stream(regs);
 		std::string trans_num, name, val;
@@ -335,6 +359,7 @@ void TraceReader::generateExcallRet() {
 			val_arr << ",";
 
 		}
+          }
 	}
 	std::ofstream global_vars("global_vars.h", std::ios::app);
 	if (global_vars.is_open()) {
@@ -347,14 +372,19 @@ void TraceReader::generateExcallRet() {
 }
 
 void TraceReader::generateMOs() {
-	// get size of the vector
-	mo_size = mo_vec.size();
 	// create a stringstream as the statement for allocation of memories in c file.
 	std::stringstream mo_addr("");
 	std::stringstream mo_val("");
+	// get size of the vector
+	mo_size = mo_vec.size();
+        if(!mo_size) {
+            mo_addr << "char** mo_addr;" << std::endl;
+            mo_val << "unsigned char* mo_val;" << std::endl;
 
-	std::map<long long, unsigned int> addr_val_map;
-	for(unsigned int i = 0; i < mo_size; i++) {
+        } else {
+
+	  std::map<long long, unsigned int> addr_val_map;
+	  for(unsigned int i = 0; i < mo_size; i++) {
 		std::string regs = mo_vec[i];
 		std::stringstream stream(regs);
 		long long addr;
@@ -364,12 +394,12 @@ void TraceReader::generateMOs() {
 		// insert every pair of mo into a map so that they are sorted by addr
 		addr_val_map.insert(std::pair<long long, unsigned int>(addr, val));
 
-	}
-	mo_addr << "char* mo_addr[" << mo_size << "] = {";
-	mo_val << "unsigned char mo_val[" << mo_size << "] = {";
+	  }
+	  mo_addr << "char* mo_addr[" << mo_size << "] = {";
+	  mo_val << "unsigned char mo_val[" << mo_size << "] = {";
 
-	unsigned int cnt = 0;
-	for(std::map<long long, unsigned int>::iterator it = addr_val_map.begin(); it!=addr_val_map.end(); it++) {
+	  unsigned int cnt = 0;
+	  for(std::map<long long, unsigned int>::iterator it = addr_val_map.begin(); it!=addr_val_map.end(); it++) {
 		if(cnt == mo_size - 1) {
 			mo_addr << it->first << "};" << std::endl;
 			mo_val << it->second << "};" << std::endl;
@@ -378,7 +408,8 @@ void TraceReader::generateMOs() {
 			mo_val  << it->second << ", ";
 		}
 		cnt++;
-	}
+	  }
+        }
 	std::ofstream global_vars("global_vars.h", std::ios::app);
 
 	if (global_vars.is_open()) {

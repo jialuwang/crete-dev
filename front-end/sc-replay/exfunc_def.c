@@ -20,6 +20,7 @@ void* qemu_get_nic_opaque(NetClientState *nc){
 Object *object_dynamic_cast_assert(Object *obj, const char *typename,
                                    const char *file, int line, const char *func){
 	int rc = strcmp(excall_name_arr[excall_ret_ind], "object_dynamic_cast_assert");
+        fprintf(stderr, "%s\n", excall_name_arr[excall_ret_ind]);
 	assert(!rc);
 	return excall_val_arr[excall_ret_ind++];
 }
@@ -82,6 +83,7 @@ void qemu_format_nic_info_str(NetClientState *nc, uint8_t macaddr[6]){}
 
 
 void klee_request_copy(MMIO_REQUEST* req) {
+	if(!req_size) return;
 	if (req_ind >= req_size) {
 		req->type = 0;
 		return;
@@ -90,12 +92,14 @@ void klee_request_copy(MMIO_REQUEST* req) {
 }
 
 void klee_update_interrupt_regs(INTERRUPT_REGS* regs) {
+	if(!interrupt_size) return;
 	assert(interrupt_ind < interrupt_size);
 	*regs = interrupt_arr[interrupt_ind++];
 }
 
 void klee_update_dma(void* addr, unsigned int size) {
 	//fprintf(stderr, "addr = %"PRIu64", dma_arr + dma_ind = %"PRIu64"\n", addr, dma_arr + dma_ind);
+	if(!dma_size) return;
 	assert(dma_ind < dma_size);
 
 	memcpy(addr, dma_arr + dma_ind, size);
@@ -106,7 +110,8 @@ void klee_update_dma(void* addr, unsigned int size) {
 }
 
 void klee_update_receive_regs(RECEIVE_REGS* regs) {
-	assert(receive_ind < receive_size);
+	if(!receive_size) return;
+        assert(receive_ind < receive_size);
 	*regs = receive_arr[receive_ind++];
 }
 
