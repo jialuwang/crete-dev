@@ -72,6 +72,16 @@ void TraceReader::readToVectors() {
 			interrupt_vec.push_back(line);
 		}
 	}
+	
+        //load marked_trans
+	std::ifstream marked_trans_dump ("../trace_parser/marked_trans_dump.txt");
+	if (!marked_trans_dump.good()) assert(0);
+	if (marked_trans_dump.is_open() && marked_trans_vec.empty()) {
+		std::string line;
+		while (std::getline(marked_trans_dump, line)) {
+			marked_trans_vec.push_back(line);
+		}
+	}
 	std::ofstream global_vars("global_vars.h", std::ios::app);
 
 	if (global_vars.is_open()) {
@@ -443,7 +453,38 @@ void TraceReader::generateIndices() {
 	}
 }
 
+void TraceReader::generateMarkedTrans() {
+        std::stringstream arr("");
+	// get size of the vector
+	marked_trans_size = marked_trans_vec.size();
+        if(!marked_trans_size) {
+            arr << "unsigned int* marked_trans;" << std::endl;  
+        } else {
+            arr << "unsigned int marked_trans[" << marked_trans_size << "] = {";
+	    for(unsigned int i = 0; i < marked_trans_size; i++) {
+		std::string trans = marked_trans_vec[i];
+		std::stringstream stream(trans);
+		unsigned int tmp;
+		stream >> tmp;
+                arr << tmp; 
 
+		if (i == marked_trans_size - 1) {
+			arr << "};" << std::endl;
+		} else {
+			arr << ",";
+		}
+	  }
+        }
+	std::ofstream global_vars("global_vars.h", std::ios::app);
+	if (global_vars.is_open()) {
+		global_vars << arr.rdbuf();
+		global_vars.close();
+	} else {
+		std::cout << "Unable to open global_vars";
+	}
+
+
+}
 
 TraceReader::~TraceReader() {
 	// TODO Auto-generated destructor stub

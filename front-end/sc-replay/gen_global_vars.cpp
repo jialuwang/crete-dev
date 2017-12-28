@@ -19,6 +19,7 @@ int main() {
 	tr.generateExcallRet();
 	tr.generateIndices();
 	tr.generateMOs();
+	tr.generateMarkedTrans();
 	return 0;
 }
 

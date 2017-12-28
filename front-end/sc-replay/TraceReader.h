@@ -31,6 +31,7 @@ public:
 	void generateIndices();
 	void generateMOs();
         void generateDeclaration();
+        void generateMarkedTrans();
 private:
 
 public:
@@ -75,6 +76,7 @@ private:
 	std::vector<std::string> interrupt_vec;
 	std::vector<std::string> mo_vec;
 	std::vector<std::string> ret_vec;
+	std::vector<std::string> marked_trans_vec;
 	FILE* dma_data_file;
 	unsigned char* dma_data;
 	unsigned int dma_size;
@@ -84,6 +86,7 @@ private:
 	unsigned int interrupt_size;
 	unsigned int mo_size;
 	unsigned int ret_size;
+	unsigned int marked_trans_size;
 
 };
 
