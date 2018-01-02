@@ -152,7 +152,7 @@ int main() {
 				break;
 			}
 			qklee_ret(ret);
-			fprintf(stderr, "conc trans = %d\n", counter);
+			//fprintf(stderr, "conc trans = %d\n", counter);
 			klee_request_copy(&request);
 			counter++;
 		}

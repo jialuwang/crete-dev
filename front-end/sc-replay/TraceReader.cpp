@@ -430,28 +430,6 @@ void TraceReader::generateMOs() {
 		std::cout << "Unable to open global_vars";
 	}
 }
-void TraceReader::generateIndices() {
-	std::ofstream global_vars("global_vars.h", std::ios::app);
-	std::stringstream ind("");
-	ind << "unsigned int dma_ind = 0;" << std::endl;
-	ind << "unsigned int receive_ind = 0;" << std::endl;
-	ind << "unsigned int interrupt_ind = 0;" << std::endl;
-	ind << "unsigned int req_ind = 0;" << std::endl;
-	ind << "unsigned int excall_ret_ind = 0;" << std::endl;
-
-	ind << "unsigned int dma_size = " << dma_size << ";" << std::endl;
-	ind << "unsigned int receive_size = " << receive_size << ";" << std::endl;
-	ind << "unsigned int interrupt_size = " << interrupt_size << ";" << std::endl;
-	ind << "unsigned int req_size = " << req_size << ";" << std::endl;
-	ind << "unsigned int ret_size = " << ret_size << ";" << std::endl;
-
-	if (global_vars.is_open()) {
-		global_vars << ind.rdbuf();
-		global_vars.close();
-	} else {
-		std::cout << "Unable to open global_vars";
-	}
-}
 
 void TraceReader::generateMarkedTrans() {
         std::stringstream arr("");
@@ -485,6 +463,30 @@ void TraceReader::generateMarkedTrans() {
 
 
 }
+void TraceReader::generateIndices() {
+	std::ofstream global_vars("global_vars.h", std::ios::app);
+	std::stringstream ind("");
+	ind << "unsigned int dma_ind = 0;" << std::endl;
+	ind << "unsigned int receive_ind = 0;" << std::endl;
+	ind << "unsigned int interrupt_ind = 0;" << std::endl;
+	ind << "unsigned int req_ind = 0;" << std::endl;
+	ind << "unsigned int excall_ret_ind = 0;" << std::endl;
+
+	ind << "unsigned int dma_size = " << dma_size << ";" << std::endl;
+	ind << "unsigned int receive_size = " << receive_size << ";" << std::endl;
+	ind << "unsigned int interrupt_size = " << interrupt_size << ";" << std::endl;
+	ind << "unsigned int req_size = " << req_size << ";" << std::endl;
+	ind << "unsigned int ret_size = " << ret_size << ";" << std::endl;
+        ind << "unsigned int marked_trans_size = " << marked_trans_size << ";" << std::endl;
+
+	if (global_vars.is_open()) {
+		global_vars << ind.rdbuf();
+		global_vars.close();
+	} else {
+		std::cout << "Unable to open global_vars";
+	}
+}
+
 
 TraceReader::~TraceReader() {
 	// TODO Auto-generated destructor stub
