@@ -83,7 +83,8 @@ void qemu_format_nic_info_str(NetClientState *nc, uint8_t macaddr[6]){}
 
 
 void klee_request_copy(MMIO_REQUEST* req) {
-	if(!req_size) return;
+	fprintf(stderr, "in klee_request_copy, req_ind = %d\n", req_ind);
+        if(!req_size) return;
 	if (req_ind >= req_size) {
 		req->type = 0;
 		return;

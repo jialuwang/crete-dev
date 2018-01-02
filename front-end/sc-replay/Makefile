@@ -13,12 +13,13 @@ QEMU_INCLUDES += -I$(QEMU_SRC) -I$(QEMU_SRC)/hw -I$(QEMU_SRC)/fpu \
 		 -I$(QEMU_SRC)/include/hw/ -I$(QEMU_SRC)/hw/net/ \
 		 -I$(QEMU_SRC)/include/hw/pci/ -I/usr/include/x86_64-linux-gnu \
 		 -I/usr/include/p11-kit-1    -I/usr/include/libpng12 \
-		 -I/usr/include/pixman-1
-
+		 -I/usr/include/pixman-1 
 #FW_INCLUDES = -I../../emu8051/replay
 
-MAIN_FILE := svd_main_trace_replay.c
+MAIN_FILE := test.c
+REPLAY_VD_FILE := replay_vd.c
 FUNC_DEF_FILE := exfunc_def.c
+
 
 #SOURCES := $(QEMU_SRC)/net/checksum.c
 # $(QEMU_SRC)/util/notify.c \
@@ -28,15 +29,16 @@ FUNC_DEF_FILE := exfunc_def.c
 
 
 OBJECTS := ${SOURCES:.c=.bc}
-TARGET = svd_main_trace_replay.ll
+TARGET = test.ll
+REPLAY_VD = replay_vd.ll
 FUNC_DEF = exfunc_def.ll
 
 .PHONY: all clean distclean
 
 all:
-#	$(CC) $(CFLAGS) $(QEMU_INCLUDES) $(FW_INCLUDES) $(MAIN_FILE) -o $(TARGET)
 	$(CC) $(CFLAGS) $(FW_INCLUDES) $(QEMU_INCLUDES) $(MAIN_FILE) -o $(TARGET)
 	$(CC) $(CFLAGS) $(FW_INCLUDES) $(QEMU_INCLUDES) $(FUNC_DEF_FILE) -o $(FUNC_DEF)
+	$(CC) $(CFLAGS) $(FW_INCLUDES) $(QEMU_INCLUDES) $(REPLAY_VD_FILE) -o $(REPLAY_VD)
 
 #l: $(TARGET)
 #(TARGET): $(OBJECTS)
